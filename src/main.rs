@@ -1,10 +1,8 @@
 use ratatui::{
-    DefaultTerminal, Frame,
-    crossterm::{
+    DefaultTerminal, Frame, crossterm::{
         self,
         event::{Event, KeyCode},
-    },
-    layout::{Constraint, Layout},
+    }, layout::{Constraint, Layout}, style::Stylize, widgets::Paragraph
 };
 use serde::Deserialize;
 
@@ -19,6 +17,7 @@ struct Story {
 struct State {
     stories: Vec<Story>,
     selected: usize,
+    show_help: bool,
 }
 
 fn main() -> color_eyre::Result<()> {
@@ -27,6 +26,7 @@ fn main() -> color_eyre::Result<()> {
     let mut state = State {
         stories,
         selected: 0,
+        show_help: true,
     };
     ratatui::run(|terminal| app(terminal, &mut state))?;
     Ok(())
@@ -53,6 +53,9 @@ fn app(terminal: &mut DefaultTerminal, state: &mut State) -> std::io::Result<()>
                 if key.code == KeyCode::Char('o') && state.stories[state.selected].url.is_some() {
                     open::that(state.stories[state.selected].url.as_deref().unwrap())?;
                 }
+                if key.code == KeyCode::Char('?') {
+                    state.show_help = !state.show_help;
+                }
             }
             _ => {}
         }
@@ -60,14 +63,32 @@ fn app(terminal: &mut DefaultTerminal, state: &mut State) -> std::io::Result<()>
 }
 
 fn render(frame: &mut Frame, state: &mut State) {
-    let layout = Layout::default()
+    if state.show_help {
+        let outer_layout = Layout::default()
+            .direction(ratatui::layout::Direction::Horizontal)
+            .constraints(vec![
+                Constraint::Percentage(80),
+                Constraint::Percentage(10),
+                Constraint::Percentage(10),
+            ])
+            .split(frame.area());
+
+        frame.render_widget(Paragraph::new("Hacker News TUI\n Help: \n '?' to hide/show help. \n 'j'/'k' to scroll. \n 'o' to open url.").cyan(), outer_layout[1]);
+    }
+
+    let outer_layout = Layout::default()
+        .direction(ratatui::layout::Direction::Horizontal)
+        .constraints(vec![Constraint::Percentage(100)])
+        .split(frame.area());
+
+    let inner_layout = Layout::default()
         .direction(ratatui::layout::Direction::Vertical)
         .constraints(vec![Constraint::Percentage(40), Constraint::Percentage(50)])
-        .split(frame.area());
+        .split(outer_layout[0]);
 
     frame.render_widget(
         format!("{}", state.stories[state.selected].title),
-        layout[0],
+        inner_layout[0],
     );
     frame.render_widget(
         format!(
@@ -77,7 +98,7 @@ fn render(frame: &mut Frame, state: &mut State) {
                 .as_deref()
                 .unwrap_or("(no url)")
         ),
-        layout[1],
+        inner_layout[1],
     );
 }
 
