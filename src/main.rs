@@ -1,5 +1,6 @@
 use ratatui::{
-    DefaultTerminal, Frame, crossterm,
+    DefaultTerminal, Frame,
+    crossterm::{self, event::{Event, KeyCode}},
     layout::{Constraint, Layout},
 };
 use serde::Deserialize;
@@ -12,31 +13,53 @@ struct Story {
     by: String,
 }
 
+struct State {
+    stories: Vec<Story>,
+    selected: usize,
+}
+
+
 fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
-    ratatui::run(app)?;
+    let stories: Vec<Story> = fetch_hn();
+    let mut state = State { stories, selected: 0 };
+    ratatui::run(|terminal| app(terminal, &mut state))?;
     Ok(())
 }
 
-fn app(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
-    let stories: Vec<Story> = fetch_hn();
+fn app(terminal: &mut DefaultTerminal, state: &mut State) -> std::io::Result<()> {
     loop {
-        terminal.draw(|frame| render(frame, &stories))?;
-        if crossterm::event::read()?.is_key_press() {
-            break Ok(());
+        terminal.draw(|frame| render(frame, state))?;
+        match crossterm::event::read()? {
+            Event::Key(key) => {
+                if key.code == KeyCode::Char('q') {
+                    break Ok(());
+                }
+                if key.code == KeyCode::Char('j') {
+                    if state.selected != 0 {
+                        state.selected -= 1;
+                    }
+                }
+                if key.code == KeyCode::Char('k') {
+                    if state.stories.get(state.selected + 1).is_some() {
+                        state.selected += 1;
+                    }
+                }
+            }
+            _ => {}
         }
     }
 }
 
-fn render(frame: &mut Frame, stories: &Vec<Story>) {
+fn render(frame: &mut Frame, state: &mut State) {
     let layout = Layout::default()
         .direction(ratatui::layout::Direction::Vertical)
         .constraints(vec![Constraint::Percentage(40), Constraint::Percentage(50)])
         .split(frame.area());
 
-    frame.render_widget(format!("{}", stories[0].title), layout[0]);
+    frame.render_widget(format!("{}", state.stories[state.selected].title), layout[0]);
     frame.render_widget(
-        format!("{}", stories[0].url.as_deref().unwrap_or("(no url)")),
+        format!("{}", state.stories[state.selected].url.as_deref().unwrap_or("(no url)")),
         layout[1],
     );
 }
