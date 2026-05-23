@@ -1,6 +1,9 @@
 use ratatui::{
     DefaultTerminal, Frame,
-    crossterm::{self, event::{Event, KeyCode}},
+    crossterm::{
+        self,
+        event::{Event, KeyCode},
+    },
     layout::{Constraint, Layout},
 };
 use serde::Deserialize;
@@ -18,11 +21,13 @@ struct State {
     selected: usize,
 }
 
-
 fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
     let stories: Vec<Story> = fetch_hn();
-    let mut state = State { stories, selected: 0 };
+    let mut state = State {
+        stories,
+        selected: 0,
+    };
     ratatui::run(|terminal| app(terminal, &mut state))?;
     Ok(())
 }
@@ -35,15 +40,18 @@ fn app(terminal: &mut DefaultTerminal, state: &mut State) -> std::io::Result<()>
                 if key.code == KeyCode::Char('q') {
                     break Ok(());
                 }
-                if key.code == KeyCode::Char('j') {
+                if key.code == KeyCode::Char('k') {
                     if state.selected != 0 {
                         state.selected -= 1;
                     }
                 }
-                if key.code == KeyCode::Char('k') {
+                if key.code == KeyCode::Char('j') {
                     if state.stories.get(state.selected + 1).is_some() {
                         state.selected += 1;
                     }
+                }
+                if key.code == KeyCode::Char('o') && state.stories[state.selected].url.is_some() {
+                    open::that(state.stories[state.selected].url.as_deref().unwrap())?;
                 }
             }
             _ => {}
@@ -57,9 +65,18 @@ fn render(frame: &mut Frame, state: &mut State) {
         .constraints(vec![Constraint::Percentage(40), Constraint::Percentage(50)])
         .split(frame.area());
 
-    frame.render_widget(format!("{}", state.stories[state.selected].title), layout[0]);
     frame.render_widget(
-        format!("{}", state.stories[state.selected].url.as_deref().unwrap_or("(no url)")),
+        format!("{}", state.stories[state.selected].title),
+        layout[0],
+    );
+    frame.render_widget(
+        format!(
+            "{}",
+            state.stories[state.selected]
+                .url
+                .as_deref()
+                .unwrap_or("(no url)")
+        ),
         layout[1],
     );
 }
