@@ -1,8 +1,12 @@
 use ratatui::{
-    DefaultTerminal, Frame, crossterm::{
+    DefaultTerminal, Frame,
+    crossterm::{
         self,
-        event::{Event, KeyCode},
-    }, layout::{Constraint, Layout}, style::Stylize, widgets::Paragraph
+        event::{Event, KeyCode, KeyModifiers},
+    },
+    layout::{Constraint, Layout},
+    style::Stylize,
+    widgets::Paragraph,
 };
 use serde::Deserialize;
 
@@ -37,7 +41,10 @@ fn app(terminal: &mut DefaultTerminal, state: &mut State) -> std::io::Result<()>
         terminal.draw(|frame| render(frame, state))?;
         match crossterm::event::read()? {
             Event::Key(key) => {
-                if key.code == KeyCode::Char('q') {
+                if key.code == KeyCode::Char('q')
+                    || ((key.code == KeyCode::Char('c') || key.code == KeyCode::Char('d'))
+                        && key.modifiers.contains(KeyModifiers::CONTROL))
+                {
                     break Ok(());
                 }
                 if key.code == KeyCode::Char('k') {
@@ -86,18 +93,18 @@ fn render(frame: &mut Frame, state: &mut State) {
         .constraints(vec![Constraint::Percentage(40), Constraint::Percentage(50)])
         .split(outer_layout[0]);
 
-    frame.render_widget(
-        format!("{}", state.stories[state.selected].title),
-        inner_layout[0],
-    );
+    let story = &state.stories[state.selected];
+
     frame.render_widget(
         format!(
-            "{}",
-            state.stories[state.selected]
-                .url
-                .as_deref()
-                .unwrap_or("(no url)")
+            "{}, by {}. (HN Score: {})",
+            story.title, story.by, story.score
         ),
+        inner_layout[0],
+    );
+
+    frame.render_widget(
+        format!("{}", story.url.as_deref().unwrap_or("(no url)")),
         inner_layout[1],
     );
 }
