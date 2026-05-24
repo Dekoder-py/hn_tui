@@ -80,7 +80,7 @@ fn render(frame: &mut Frame, state: &mut State) {
             ])
             .split(frame.area());
 
-        frame.render_widget(Paragraph::new("Hacker News TUI\n Help: \n '?' to hide/show help. \n 'j'/'k' to scroll. \n 'o' to open url.").cyan(), outer_layout[1]);
+        frame.render_widget(Paragraph::new("Hacker News TUI\n Help: \n '?' to hide/show help. \n 'j'/'k' to scroll. \n 'o' to open url. \n 'q' to quit.").cyan(), outer_layout[1]);
     }
 
     let outer_layout = Layout::default()
@@ -111,6 +111,7 @@ fn render(frame: &mut Frame, state: &mut State) {
 
 fn fetch_hn() -> Vec<Story> {
     let client = reqwest::blocking::Client::new();
+    println!("Fetching Hacker News stories... please wait :)");
     let ids: Vec<u64> = client
         .get("https://hacker-news.firebaseio.com/v0/topstories.json")
         .send()
