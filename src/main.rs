@@ -90,22 +90,22 @@ fn render(frame: &mut Frame, state: &mut State) {
 
     let inner_layout = Layout::default()
         .direction(ratatui::layout::Direction::Vertical)
-        .constraints(vec![Constraint::Percentage(40), Constraint::Percentage(50)])
+        .constraints(vec![Constraint::Percentage(10), Constraint::Percentage(5), Constraint::Percentage(20), Constraint::Percentage(80)])
         .split(outer_layout[0]);
 
     let story = &state.stories[state.selected];
 
     frame.render_widget(
         format!(
-            "{}, by {}. (HN Score: {})",
+            "  {}, by {}. (HN Score: {})",
             story.title, story.by, story.score
         ),
-        inner_layout[0],
+        inner_layout[1],
     );
 
     frame.render_widget(
-        format!("{}", story.url.as_deref().unwrap_or("(no url)")),
-        inner_layout[1],
+        format!("  {}", story.url.as_deref().unwrap_or("(no url)")),
+        inner_layout[2],
     );
 }
 
