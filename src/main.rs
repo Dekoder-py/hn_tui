@@ -4,9 +4,9 @@ use ratatui::{
         self,
         event::{Event, KeyCode, KeyModifiers},
     },
-    layout::{Constraint, Layout},
-    style::Stylize,
-    widgets::Paragraph,
+    layout::{self, Constraint, Layout},
+    style::{Color, Style, Stylize},
+    widgets::{Paragraph, Row, Table, Wrap},
 };
 use serde::Deserialize;
 
@@ -70,43 +70,58 @@ fn app(terminal: &mut DefaultTerminal, state: &mut State) -> std::io::Result<()>
 }
 
 fn render(frame: &mut Frame, state: &mut State) {
-    if state.show_help {
-        let outer_layout = Layout::default()
-            .direction(ratatui::layout::Direction::Horizontal)
-            .constraints(vec![
-                Constraint::Percentage(80),
-                Constraint::Percentage(10),
-                Constraint::Percentage(10),
-            ])
-            .split(frame.area());
-
-        frame.render_widget(Paragraph::new("Hacker News TUI\n Help: \n '?' to hide/show help. \n 'j'/'k' to scroll. \n 'o' to open url. \n 'q' to quit.").cyan(), outer_layout[1]);
-    }
-
     let outer_layout = Layout::default()
         .direction(ratatui::layout::Direction::Horizontal)
-        .constraints(vec![Constraint::Percentage(100)])
+        .constraints(vec![Constraint::Percentage(80), Constraint::Percentage(20)])
         .split(frame.area());
+
+    if state.show_help {
+        let help_header = Row::new(["Key", "Action"])
+            .style(Style::new().bold())
+            .bottom_margin(1);
+
+        let help_rows = [
+            Row::new(["?", "Show/Hide Help"]),
+            Row::new(["j", "Scroll down"]),
+            Row::new(["k", "Scroll up"]),
+            Row::new(["o", "Open URL"]),
+            Row::new(["q", "Quit"]),
+        ];
+
+        let widths = [Constraint::Percentage(20), Constraint::Percentage(80)];
+
+        let help_table = Table::new(help_rows, widths)
+            .header(help_header)
+            .column_spacing(1)
+            .style(Color::Cyan);
+
+        frame.render_widget(help_table, outer_layout[1]);
+    }
 
     let inner_layout = Layout::default()
         .direction(ratatui::layout::Direction::Vertical)
-        .constraints(vec![Constraint::Percentage(10), Constraint::Percentage(5), Constraint::Percentage(20), Constraint::Percentage(80)])
+        .constraints(vec![
+            Constraint::Percentage(10),
+            Constraint::Percentage(5),
+            Constraint::Percentage(20),
+            Constraint::Percentage(80),
+        ])
         .split(outer_layout[0]);
 
     let story = &state.stories[state.selected];
 
-    frame.render_widget(
-        format!(
-            "  {}, by {}. (HN Score: {})",
-            story.title, story.by, story.score
-        ),
-        inner_layout[1],
-    );
+    let story_p = Paragraph::new(format!(
+        "{}, by {}. (HN Score: {})",
+        story.title, story.by, story.score
+    ))
+    .wrap(Wrap { trim: false });
 
-    frame.render_widget(
-        format!("  {}", story.url.as_deref().unwrap_or("(no url)")),
-        inner_layout[2],
-    );
+    let link_p = Paragraph::new(format!("{}", story.url.as_deref().unwrap_or("(no url)")))
+        .wrap(Wrap { trim: false });
+
+    frame.render_widget(story_p, inner_layout[1]);
+
+    frame.render_widget(link_p, inner_layout[2]);
 }
 
 fn fetch_hn() -> Vec<Story> {
