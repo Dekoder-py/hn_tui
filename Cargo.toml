@@ -1,11 +1,15 @@
 [package]
-name = "hn_tui"
+name = "dekoder_py_hn_tui"
 version = "0.1.0"
 edition = "2024"
 license = "MIT"
 description = "Hacker News TUI"
 repository = "https://github.com/Dekoder-py/hn_tui"
 readme = "README.md"
+
+[[bin]]
+name = "hn_tui"
+path = "src/main.rs"
 
 [dependencies]
 color-eyre = "0.6.5"

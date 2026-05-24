@@ -375,6 +375,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "dekoder_py_hn_tui"
+version = "0.1.0"
+dependencies = [
+ "color-eyre",
+ "open",
+ "ratatui",
+ "reqwest",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "deltae"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -730,18 +742,6 @@ name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
-
-[[package]]
-name = "hn_tui"
-version = "0.1.0"
-dependencies = [
- "color-eyre",
- "open",
- "ratatui",
- "reqwest",
- "serde",
- "serde_json",
-]
 
 [[package]]
 name = "http"
