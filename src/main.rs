@@ -16,6 +16,13 @@ struct Story {
     url: Option<String>,
     score: u32,
     by: String,
+    kids: Option<Vec<usize>>,
+}
+
+#[derive(Deserialize)]
+struct Comment {
+    text: String,
+    by: String,
 }
 
 struct State {
@@ -62,6 +69,12 @@ fn app(terminal: &mut DefaultTerminal, state: &mut State) -> std::io::Result<()>
                 }
                 if key.code == KeyCode::Char('?') {
                     state.show_help = !state.show_help;
+                }
+                if key.code == KeyCode::Char('c') {
+                    let comment = fetch_comments(&state.stories[state.selected]);
+                    if comment.is_some() {
+                        println!("{}", comment.unwrap_or(Comment {text: "".to_string(), by: "".to_string()}).text);
+                    }
                 }
             }
             _ => {}
@@ -149,4 +162,24 @@ fn fetch_hn() -> Vec<Story> {
     }
 
     stories
+}
+
+fn fetch_comments(story: &Story) -> Option<Comment> {
+    if story.kids.is_some() {
+        let client = reqwest::blocking::Client::new();
+        let url = format!(
+            "https://hacker-news.firebaseio.com/v0/item/{}.json",
+            story.kids.as_deref().unwrap()[0]
+        );
+
+        let comment: Comment = client
+            .get(&url)
+            .send()
+            .expect("Failed to fetch comment")
+            .json()
+            .expect("Failed to parse comment");
+        Some(comment)
+    } else {
+        None
+    }
 }
