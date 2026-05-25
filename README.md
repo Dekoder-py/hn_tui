@@ -7,7 +7,7 @@ Help can be shown in the TUI with '?'
 ## Install
 
 ```bash
-cargo install
+cargo install dekoder_py_hn_tui
 ```
 
 ## Run
