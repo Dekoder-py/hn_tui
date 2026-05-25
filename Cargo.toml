@@ -1,6 +1,6 @@
 [package]
 name = "dekoder_py_hn_tui"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 license = "MIT"
 description = "Hacker News TUI"
